@@ -53,3 +53,21 @@ func (s *BookStore) ListBooks(ctx context.Context, lastID uuid.UUID, limit int) 
 	return books, hasMore, nil
 }
 
+func (s *BookStore) GetBook(ctx context.Context, bookID uuid.UUID) (entities.Book, error) {
+	query := `
+		SELECT id, title, created_at, updated_at
+		FROM books
+		WHERE id = $1
+	`
+
+	var book entities.Book
+	if err := sqlscan.Get(ctx, s.db, &book, query, bookID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entities.Book{}, ErrNotFound
+		}
+
+		return entities.Book{}, fmt.Errorf("failed to get book: %w", err)
+	}
+
+	return book, nil
+}

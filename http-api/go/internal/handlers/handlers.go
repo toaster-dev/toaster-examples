@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"toasterexample/internal/services"
+	"toasterexample/internal/xerrors"
 	"toasterexample/types"
 
 	"github.com/google/uuid"
@@ -71,3 +72,49 @@ func ListBooks(libraryService *services.LibraryService) http.HandlerFunc {
 	}
 }
 
+func GetBook(libraryService *services.LibraryService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		bookID, err := uuid.Parse(r.PathValue("bookID"))
+		if err != nil {
+			slog.Error("invalid book ID", slog.Any("error", err), slog.String("bookID", r.PathValue("bookID")))
+			writeJSON(w, http.StatusBadRequest, httpError{
+				Message: "invalid book ID, must be a valid UUID",
+			})
+			return
+		}
+
+		book, err := libraryService.GetBook(ctx, bookID)
+		if err != nil {
+			slog.Error("failed to get book", slog.Any("error", err), slog.String("bookID", bookID.String()))
+
+			status := http.StatusInternalServerError
+			message := "failed to get book"
+
+			switch {
+			case errors.Is(err, xerrors.ErrNotFound):
+				status = http.StatusNotFound
+
+			default:
+				writeJSON(w, http.StatusInternalServerError, httpError{
+					Message: "failed to get book",
+				})
+			}
+
+			var serr xerrors.StructuredError
+			if errors.As(err, &serr) {
+				message = err.Error()
+			}
+
+			writeJSON(w, status, httpError{
+				Message: message,
+			})
+			return
+		}
+
+		writeJSON(w, http.StatusOK, map[string]any{
+			"data": book,
+		})
+	}
+}

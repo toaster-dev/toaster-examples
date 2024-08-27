@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"toasterexample/internal/stores"
+	"toasterexample/internal/xerrors"
 	"toasterexample/types"
 
 	"github.com/google/uuid"
@@ -35,3 +36,13 @@ func (s *LibraryService) ListBooks(ctx context.Context, lastID uuid.UUID, limit 
 	return books, hasMore, nil
 }
 
+func (s *LibraryService) GetBook(ctx context.Context, bookID uuid.UUID) (types.Book, error) {
+	bookEntity, err := s.bookStore.GetBook(ctx, bookID)
+	if errors.Is(err, stores.ErrNotFound) {
+		return types.Book{}, xerrors.WrapError(xerrors.ErrNotFound, "book not found", err)
+	} else if err != nil {
+		return types.Book{}, fmt.Errorf("failed to get book: %w", err)
+	}
+
+	return types.BookEntityToBook(bookEntity), nil
+}
