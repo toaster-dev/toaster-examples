@@ -1,0 +1,55 @@
+package stores
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+
+	"toasterexample/internal/stores/entities"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/georgysavva/scany/sqlscan"
+	"github.com/google/uuid"
+)
+
+type BookStore struct {
+	db *sql.DB
+}
+
+func NewBookStore(db *sql.DB) *BookStore {
+	return &BookStore{
+		db: db,
+	}
+}
+
+func (s *BookStore) ListBooks(ctx context.Context, lastID uuid.UUID, limit int) ([]entities.Book, bool, error) {
+	books := []entities.Book{}
+
+	q := sq.Select("id", "title", "created_at", "updated_at").
+		From("books").
+		OrderBy("id DESC").
+		Limit(uint64(limit + 1))
+
+	if lastID != uuid.Nil {
+		q = q.Where(sq.Lt{"id": lastID})
+	}
+
+	query, args, err := q.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return []entities.Book{}, false, fmt.Errorf("failed to build query: %w", err)
+	}
+
+	if err := sqlscan.Select(ctx, s.db, &books, query, args...); err != nil {
+		return []entities.Book{}, false, fmt.Errorf("failed to list books: %w", err)
+	}
+
+	hasMore := false
+	if len(books) > limit {
+		hasMore = true
+		books = books[:limit]
+	}
+
+	return books, hasMore, nil
+}
+

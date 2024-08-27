@@ -1,0 +1,45 @@
+linters:
+  presets:
+    - bugs
+    - error
+    - format
+    - import
+    - module
+    - performance
+    - test
+    - unused
+
+  enable:
+    - misspell
+
+  disable:
+    - depguard # forces to manually allow each import
+    - exhaustive # forces to switch on all enum values
+    - exhaustruct # forces to initialize all struct fields
+    - err113 # broken
+    - tparallel # forces to use parallel tests which is not always possible
+    - gci # conflicts with gofumpt and goimports
+
+issues:
+  exclude-rules:
+    - path: (.+)_test.go
+      linters:
+        - wrapcheck
+
+linters-settings:
+  paralleltest:
+    ignore-missing-subtests: true
+
+  gofumpt:
+    module-path: toasterexample
+
+  wrapcheck:
+    ignoreSigs:
+      - .Errorf(
+      - errors.New(
+      - errors.Unwrap(
+      - errors.Join(
+      - xerrors.Error(
+      - xerrors.WrapError(
+run:
+  timeout: 1m
