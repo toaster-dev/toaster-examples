@@ -1,0 +1,25 @@
+name: Go HTTP API environment
+setup:
+  steps:
+    - type: docker-compose
+      command: up
+      group: toaster-go
+      file: ../go/docker-compose.yml
+
+    - type: db-migrations
+      engine: generic
+      driver: postgres
+      dsn: user=${postgres_username} password=${postgres_password} dbname=${postgres_db} host=${postgres_host} port=${postgres_port} sslmode=disable
+      folder: ../db-migrations
+
+    - type: db-fixtures
+      driver: postgres
+      dsn: user=${postgres_username} password=${postgres_password} dbname=${postgres_db} host=${postgres_host} port=${postgres_port} sslmode=disable
+      folder: db-fixtures
+
+teardown:
+  steps:
+    - type: docker-compose
+      command: down
+      group: toaster-go
+      file: ../go/docker-compose.yml
