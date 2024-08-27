@@ -90,3 +90,44 @@ tests:
           - result.body:
               eq: { "error": "invalid lastID, must be a valid UUID" }
 
+  - name: Get book
+    steps:
+      - type: http
+        method: GET
+        url: ${app}/books/01918b20-ba3d-7ae5-acdc-66b0546643b1
+        assertions:
+          - result.statusCode: 200
+          - result.statusText: OK
+          - result.body:
+              eq:
+                {
+                  "data":
+                    {
+                      "id": "01918b20-ba3d-7ae5-acdc-66b0546643b1",
+                      "title": "The Art of PostgreSQL",
+                      "createdAt": "2025-08-25T22:00:23Z",
+                      "updatedAt": "2025-08-25T22:00:23Z",
+                    },
+                }
+
+  - name: Get book - non-existent book
+    steps:
+      - type: http
+        method: GET
+        url: ${app}/books/019194db-e97b-7ba5-845f-0863ef0b7b75
+        assertions:
+          - result.statusCode: 404
+          - result.statusText: Not Found
+          - result.body:
+              eq: { "error": "book not found" }
+
+  - name: Get book - invalid ID
+    steps:
+      - type: http
+        method: GET
+        url: ${app}/books/invalid-id
+        assertions:
+          - result.statusCode: 400
+          - result.statusText: Bad Request
+          - result.body:
+              eq: { "error": "invalid book ID, must be a valid UUID" }
