@@ -68,6 +68,17 @@ tests:
           - result.body:
               eq: { "error": "invalid limit, must be an integer" }
 
+  - name: List books - limit set to 0
+    steps:
+      - type: http
+        method: GET
+        url: ${app}/books?limit=0
+        assertions:
+          - result.statusCode: 400
+          - result.statusText: Bad Request
+          - result.body:
+              eq: { "error": "invalid limit, must be greater than 0" }
+
   - name: List books - negative limit
     steps:
       - type: http

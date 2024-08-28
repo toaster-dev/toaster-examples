@@ -47,6 +47,7 @@ func ListBooks(libraryService *services.LibraryService) http.HandlerFunc {
 				writeJSON(w, http.StatusBadRequest, httpError{
 					Message: "invalid limit, must be greater than 0",
 				})
+				return
 			}
 
 			limit = l
