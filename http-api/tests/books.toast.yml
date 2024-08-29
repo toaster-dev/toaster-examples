@@ -150,3 +150,15 @@ tests:
                 "updatedAt": *ignored,
               }
             }
+
+      - type: sql
+        driver: postgres
+        dsn: user=${postgres_username} password=${postgres_password} dbname=${postgres_db} host=${postgres_host} port=${postgres_port} sslmode=disable
+        queries:
+          - |
+            SELECT *
+            FROM books
+            ORDER BY id DESC
+            LIMIT 1
+        assert:
+          - result.queries[0].rows[0].title: The Go Programming Language
