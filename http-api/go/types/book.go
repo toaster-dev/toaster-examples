@@ -18,3 +18,17 @@ type Book struct {
 func BookEntityToBook(e entities.Book) Book {
 	return Book(e)
 }
+
+func BookToBookEntity(b Book) entities.Book {
+	return entities.Book(b)
+}
+
+type RequestCreateBook struct {
+	Title string `json:"title"`
+}
+
+func (r RequestCreateBook) ToBook() Book {
+	return Book{
+		Title: r.Title,
+	}
+}

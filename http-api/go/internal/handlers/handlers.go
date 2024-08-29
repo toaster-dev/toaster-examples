@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -116,6 +117,34 @@ func GetBook(libraryService *services.LibraryService) http.HandlerFunc {
 
 		writeJSON(w, http.StatusOK, map[string]any{
 			"data": book,
+		})
+	}
+}
+
+func CreateBook(libraryService *services.LibraryService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var requestCreateBook types.RequestCreateBook
+		if err := json.NewDecoder(r.Body).Decode(&requestCreateBook); err != nil {
+			slog.Error("failed to read request body", slog.Any("error", err))
+			writeJSON(w, http.StatusBadRequest, httpError{
+				Message: "invalid request body",
+			})
+			return
+		}
+
+		createdBook, err := libraryService.CreateBook(ctx, requestCreateBook.ToBook())
+		if err != nil {
+			slog.Error("failed to create book", slog.Any("error", err))
+			writeJSON(w, http.StatusInternalServerError, httpError{
+				Message: "failed to create book",
+			})
+			return
+		}
+
+		writeJSON(w, http.StatusCreated, map[string]any{
+			"data": createdBook,
 		})
 	}
 }

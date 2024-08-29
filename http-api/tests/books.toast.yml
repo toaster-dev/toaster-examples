@@ -127,3 +127,26 @@ tests:
           - result.statusCode: 400
           - result.statusText: Bad Request
           - result.body: { "error": "invalid book ID, must be a valid UUID" }
+
+  - name: Create book
+    steps:
+      - type: http
+        method: POST
+        url: ${app}/books/
+        body: |
+          {
+            "title": "The Go Programming Language"
+          }
+        headers:
+          Content-Type: application/json
+        assert:
+          - result.statusCode: 201
+          - result.statusText: Created
+          - result.body: {
+              "data": {
+                "id": *ignored,
+                "title": "The Go Programming Language",
+                "createdAt": *ignored,
+                "updatedAt": *ignored,
+              }
+            }

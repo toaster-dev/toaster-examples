@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"toasterexample/internal/stores/entities"
 
@@ -67,6 +68,33 @@ func (s *BookStore) GetBook(ctx context.Context, bookID uuid.UUID) (entities.Boo
 		}
 
 		return entities.Book{}, fmt.Errorf("failed to get book: %w", err)
+	}
+
+	return book, nil
+}
+
+func (s *BookStore) CreateBook(ctx context.Context, book entities.Book) (entities.Book, error) {
+	bookID, err := uuid.NewV7()
+	if err != nil {
+		return entities.Book{}, fmt.Errorf("failed to generate book ID: %w", err)
+	}
+
+	book.ID = bookID
+	book.CreatedAt = time.Now()
+	book.UpdatedAt = time.Now()
+
+	query := `
+		INSERT INTO books (id, title, created_at, updated_at)
+		VALUES ($1, $2, $3, $4)
+	`
+
+	res, err := s.db.ExecContext(ctx, query, book.ID, book.Title, book.CreatedAt, book.UpdatedAt)
+	if err != nil {
+		return entities.Book{}, fmt.Errorf("failed to create book: %w", err)
+	}
+
+	if rowsAffected, _ := res.RowsAffected(); rowsAffected != 1 {
+		return entities.Book{}, fmt.Errorf("failed to create book: expected 1 row to be affected, got %d", rowsAffected)
 	}
 
 	return book, nil

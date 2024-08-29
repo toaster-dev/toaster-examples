@@ -59,6 +59,7 @@ func main() {
 
 	mux.HandleFunc("GET /books/{$}", handlers.ListBooks(libraryService))
 	mux.HandleFunc("GET /books/{bookID}", handlers.GetBook(libraryService))
+	mux.HandleFunc("POST /books/{$}", handlers.CreateBook(libraryService))
 
 	var httpHandler http.Handler = mux
 	httpHandler = middleware.Compress(5)(httpHandler)

@@ -46,3 +46,12 @@ func (s *LibraryService) GetBook(ctx context.Context, bookID uuid.UUID) (types.B
 
 	return types.BookEntityToBook(bookEntity), nil
 }
+
+func (s *LibraryService) CreateBook(ctx context.Context, book types.Book) (types.Book, error) {
+	bookEntity, err := s.bookStore.CreateBook(ctx, types.BookToBookEntity(book))
+	if err != nil {
+		return types.Book{}, fmt.Errorf("failed to create book: %w", err)
+	}
+
+	return types.BookEntityToBook(bookEntity), nil
+}
