@@ -6,139 +6,124 @@ tests:
       - type: http
         method: GET
         url: ${app}/books?limit=2
-        assertions:
+        assert:
           - result.statusCode: 200
           - result.statusText: OK
           - result.body.data:
               length: 2
-          - result.body:
-              eq:
+          - result.body: {
+              "data": [
                 {
-                  "data":
-                    [
-                      {
-                        "id": "01918b20-ba3d-7ae5-acdc-66b0546643b1",
-                        "title": "The Art of PostgreSQL",
-                        "createdAt": "2025-08-25T22:00:23Z",
-                        "updatedAt": "2025-08-25T22:00:23Z",
-                      },
-                      {
-                        "id": "01918b20-7d9d-7794-9bf2-1a2607607acc",
-                        "title": "The Pragmatic Programmer",
-                        "createdAt": "2025-08-25T22:00:23Z",
-                        "updatedAt": "2025-08-25T22:00:23Z",
-                      },
-                    ],
-                  "metadata": { "pagination": { "hasMore": true } },
-                }
+                  "id": "01918b20-ba3d-7ae5-acdc-66b0546643b1",
+                  "title": "The Art of PostgreSQL",
+                  "createdAt": "2025-08-25T22:00:23Z",
+                  "updatedAt": "2025-08-25T22:00:23Z",
+                },
+                {
+                  "id": "01918b20-7d9d-7794-9bf2-1a2607607acc",
+                  "title": "The Pragmatic Programmer",
+                  "createdAt": "2025-08-25T22:00:23Z",
+                  "updatedAt": "2025-08-25T22:00:23Z",
+                },
+              ],
+              "metadata": { "pagination": { "hasMore": true } },
+            }
 
       - type: http
         method: GET
         url: ${app}/books?limit=2
         queryParams:
           lastID: 01918b20-7d9d-7794-9bf2-1a2607607acc
-        assertions:
+        assert:
           - result.statusCode: 200
           - result.statusText: OK
           - result.body.data:
               length: 1
-          - result.body:
-              eq:
+          - result.body: {
+              "data": [
                 {
-                  "data":
-                    [
-                      {
-                        "id": "01918b1f-42f0-7cdc-b538-01496625b1e5",
-                        "title": "Designing Data-Intensive Applications",
-                        "createdAt": "2025-08-25T22:00:23Z",
-                        "updatedAt": "2025-08-25T22:00:23Z",
-                      },
-                    ],
-                  "metadata": { "pagination": { "hasMore": false } },
-                }
+                  "id": "01918b1f-42f0-7cdc-b538-01496625b1e5",
+                  "title": "Designing Data-Intensive Applications",
+                  "createdAt": "2025-08-25T22:00:23Z",
+                  "updatedAt": "2025-08-25T22:00:23Z",
+                },
+              ],
+              "metadata": { "pagination": { "hasMore": false } },
+            }
 
   - name: List books - invalid limit
     steps:
       - type: http
         method: GET
         url: ${app}/books?limit=invalid
-        assertions:
+        assert:
           - result.statusCode: 400
           - result.statusText: Bad Request
-          - result.body:
-              eq: { "error": "invalid limit, must be an integer" }
+          - result.body: { "error": "invalid limit, must be an integer" }
 
   - name: List books - limit set to 0
     steps:
       - type: http
         method: GET
         url: ${app}/books?limit=0
-        assertions:
+        assert:
           - result.statusCode: 400
           - result.statusText: Bad Request
-          - result.body:
-              eq: { "error": "invalid limit, must be greater than 0" }
+          - result.body: { "error": "invalid limit, must be greater than 0" }
 
   - name: List books - negative limit
     steps:
       - type: http
         method: GET
         url: ${app}/books?limit=-1
-        assertions:
+        assert:
           - result.statusCode: 400
           - result.statusText: Bad Request
-          - result.body:
-              eq: { "error": "invalid limit, must be greater than 0" }
+          - result.body: { "error": "invalid limit, must be greater than 0" }
 
   - name: List books - invalid lastID
     steps:
       - type: http
         method: GET
         url: ${app}/books?lastID=invalid
-        assertions:
+        assert:
           - result.statusCode: 400
           - result.statusText: Bad Request
-          - result.body:
-              eq: { "error": "invalid lastID, must be a valid UUID" }
+          - result.body: { "error": "invalid lastID, must be a valid UUID" }
 
   - name: Get book
     steps:
       - type: http
         method: GET
         url: ${app}/books/01918b20-ba3d-7ae5-acdc-66b0546643b1
-        assertions:
+        assert:
           - result.statusCode: 200
           - result.statusText: OK
-          - result.body:
-              eq:
-                {
-                  "data":
-                    {
-                      "id": "01918b20-ba3d-7ae5-acdc-66b0546643b1",
-                      "title": "The Art of PostgreSQL",
-                      "createdAt": "2025-08-25T22:00:23Z",
-                      "updatedAt": "2025-08-25T22:00:23Z",
-                    },
-                }
+          - result.body:  {
+              "data": {
+                "id": "01918b20-ba3d-7ae5-acdc-66b0546643b1",
+                "title": "The Art of PostgreSQL",
+                "createdAt": "2025-08-25T22:00:23Z",
+                "updatedAt": "2025-08-25T22:00:23Z",
+              },
+            }
 
   - name: Get book - non-existent book
     steps:
       - type: http
         method: GET
         url: ${app}/books/019194db-e97b-7ba5-845f-0863ef0b7b75
-        assertions:
+        assert:
           - result.statusCode: 404
           - result.statusText: Not Found
-          - result.body:
-              eq: { "error": "book not found" }
+          - result.body: { "error": "book not found" }
 
   - name: Get book - invalid ID
     steps:
       - type: http
         method: GET
         url: ${app}/books/invalid-id
-        assertions:
+        assert:
           - result.statusCode: 400
           - result.statusText: Bad Request
-          - result.body:
-              eq: { "error": "invalid book ID, must be a valid UUID" }
+          - result.body: { "error": "invalid book ID, must be a valid UUID" }
