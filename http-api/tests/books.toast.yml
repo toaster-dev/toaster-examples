@@ -161,4 +161,25 @@ tests:
             ORDER BY id DESC
             LIMIT 1
         assert:
-          - result.queries[0].rows[0].title: The Go Programming Language
+          - result.queries[0].rows[0]:
+              id: *ignored
+              title: The Go Programming Language
+              created_at: *ignored
+              updated_at: *ignored
+
+  - name: Create book - invalid body
+    steps:
+      - type: http
+        method: POST
+        url: ${app}/books/
+        body: |
+          {
+            "title": "
+        headers:
+          Content-Type: application/json
+        assert:
+          - result.statusCode: 400
+          - result.statusText: Bad Request
+          - result.body: {
+              "error": "invalid request body"
+            }
